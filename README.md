@@ -1,1 +1,1 @@
-stb style data validator
+stb-style data validator
