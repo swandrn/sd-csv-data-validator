@@ -1,11 +1,10 @@
+#define CSV_IMPLEMENTATION
 #include "lib/csv.h"
 #include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-
-#define CSV_IMPLEMENTATION
 
 #define PATH_LEN 1024
 

@@ -1,18 +1,19 @@
 #ifndef LIB_CSV_H
 #define LIB_CSV_H
-#endif // LIB_CSV_H
 
-#define CSV_IMPLEMENTATION // Enables syntax highlighting - Developement only
-#ifdef CSV_IMPLEMENTATION
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include <assert.h>
-#include <ctype.h>
-#include <errno.h>
 #include <stdalign.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#define CSV_CAPACITY 4096 // Number of rows allowed in a csv
+#define ROW_CAPACITY 256  // Number of fields allowed in a row
 
 typedef enum {
   UNDEFINED_TYPE = 0,
@@ -44,7 +45,33 @@ typedef struct {
   char *data;
 } Region;
 
-static Region region_malloc(size_t capacity) {
+#ifdef __cplusplus
+extern "C" Region region_malloc(size_t capacity);
+extern "C" void *region_alloc(Region *r, size_t size);
+extern "C" void region_reset(Region *r);
+extern "C" void region_free(Region *r);
+extern "C" void read_csv(Region *csv_r, CSV *csv, const char *path);
+extern "C" int validate(const char *path);
+#else
+extern Region region_malloc(size_t capacity);
+extern void *region_alloc(Region *r, size_t size);
+extern void region_reset(Region *r);
+extern void region_free(Region *r);
+extern void read_csv(Region *csv_r, CSV *csv, const char *path);
+extern int validate(const char *path);
+#endif
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif // LIB_CSV_H
+
+#ifdef CSV_IMPLEMENTATION
+#include <ctype.h>
+#include <errno.h>
+
+Region region_malloc(size_t capacity) {
   void *data = malloc(capacity);
   assert(data != NULL);
   Region r = {
@@ -56,7 +83,7 @@ static Region region_malloc(size_t capacity) {
 }
 
 // Allocate within the region
-static void *region_alloc(Region *r, size_t size) {
+void *region_alloc(Region *r, size_t size) {
   // bitwise operation to push r->size to the next block if needed
   size_t a = alignof(max_align_t);
   size_t aligned_offset = (r->size + (a - 1)) & ~(a - 1);
@@ -69,9 +96,9 @@ static void *region_alloc(Region *r, size_t size) {
   r->size += size + padding;
   return result;
 }
-static void region_reset(Region *r) { r->size = 0; }
+void region_reset(Region *r) { r->size = 0; }
 
-static void region_free(Region *r) {
+void region_free(Region *r) {
   if (!r)
     return;
   free(r->data);
@@ -80,7 +107,7 @@ static void region_free(Region *r) {
 }
 
 // Checks that a file is a CSV, exits with non zero otherwise
-static void file_is_csv(const char *path) {
+void file_is_csv(const char *path) {
   // ends with .csv
   const char *ext = ".csv";
   size_t path_len = strlen(path);
@@ -97,7 +124,7 @@ static void file_is_csv(const char *path) {
   }
 }
 
-static void set_field_type(Field *csvf, const char *field) {
+void set_field_type(Field *csvf, const char *field) {
   csvf->field_type = UNDEFINED_TYPE;
   int field_len = strlen(field);
   if (field_len == 0) {
@@ -119,7 +146,7 @@ static void set_field_type(Field *csvf, const char *field) {
   return;
 }
 
-static void read_csv(Region *csv_r, CSV *csv, const char *path) {
+void read_csv(Region *csv_r, CSV *csv, const char *path) {
   char line[4096];
   FILE *f = fopen(path, "r");
   if (f == NULL) {
@@ -150,10 +177,7 @@ static void read_csv(Region *csv_r, CSV *csv, const char *path) {
   fclose(f);
 }
 
-#define CSV_CAPACITY 4096 // Number of rows allowed in a csv
-#define ROW_CAPACITY 256  // Number of fields allowed in a row
-
-static int validate(const char *path) {
+int validate(const char *path) {
   Region csv_region = region_malloc(1024 * 1024 * 50);
   CSV *csv = (CSV *)region_alloc(&csv_region, sizeof(*csv));
   csv->rows =
