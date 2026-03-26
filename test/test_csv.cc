@@ -25,3 +25,9 @@ protected:
 
   void TearDown() override { region_free(&r); }
 };
+
+TEST_F(ReadCsvValid, AllEmptyRows) {
+  EXPECT_EQ(read_csv(&r, csv, "./csv_valid/valid_all_empty_rows.csv"), 4);
+  EXPECT_EQ(csv->rows[0].fields[0].field_type, STRING_TYPE);
+  EXPECT_EQ(csv->rows[1].fields[0].field_type, NULL_TYPE);
+}
