@@ -1,0 +1,3 @@
+id,text
+1,This is a long text field intended to test parsing of longer prose within a single CSV field without breaking row boundaries.
+2,"Another long field includes commas, periods, and descriptive language to check robust reading behavior."

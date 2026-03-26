@@ -1,0 +1,4 @@
+sql_text
+SELECT * FROM users;
+"INSERT INTO logs VALUES (1, 'ok');"
+DROP TABLE test;
