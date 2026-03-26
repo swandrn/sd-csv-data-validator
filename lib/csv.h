@@ -152,6 +152,10 @@ FieldType set_field_type(Field *csvf, const char *field) {
 }
 
 int read_csv(Region *csv_r, CSV *csv, const char *path) {
+  if (csv_r == NULL || csv == NULL || path == NULL) {
+    CSV_FPRINTF(stderr, "one or more pointer value is NULL\n");
+    return 0;
+  }
   char line[4096];
   FILE *f = fopen(path, "r");
   if (f == NULL) {
