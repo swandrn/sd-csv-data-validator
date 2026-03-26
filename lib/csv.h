@@ -50,14 +50,14 @@ extern "C" Region region_malloc(size_t capacity);
 extern "C" void *region_alloc(Region *r, size_t size);
 extern "C" void region_reset(Region *r);
 extern "C" void region_free(Region *r);
-extern "C" void read_csv(Region *csv_r, CSV *csv, const char *path);
+extern "C" int read_csv(Region *csv_r, CSV *csv, const char *path);
 extern "C" int validate(const char *path);
 #else
 extern Region region_malloc(size_t capacity);
 extern void *region_alloc(Region *r, size_t size);
 extern void region_reset(Region *r);
 extern void region_free(Region *r);
-extern void read_csv(Region *csv_r, CSV *csv, const char *path);
+extern int read_csv(Region *csv_r, CSV *csv, const char *path);
 extern int validate(const char *path);
 #endif
 
@@ -124,12 +124,11 @@ void file_is_csv(const char *path) {
   }
 }
 
-void set_field_type(Field *csvf, const char *field) {
+FieldType set_field_type(Field *csvf, const char *field) {
   csvf->field_type = UNDEFINED_TYPE;
   int field_len = strlen(field);
   if (field_len == 0) {
-    csvf->field_type = NULL_TYPE;
-    return;
+    return csvf->field_type = NULL_TYPE;
   }
   bool is_number = true;
   for (int i = 0; i < field_len; i++) {
@@ -139,42 +138,44 @@ void set_field_type(Field *csvf, const char *field) {
     };
   }
   if (is_number) {
-    csvf->field_type = INT_TYPE;
-    return;
+    return csvf->field_type = INT_TYPE;
   }
-  csvf->field_type = STRING_TYPE;
-  return;
+  // TODO: Add check of properly escaped characters
+  return csvf->field_type = STRING_TYPE;
 }
 
-void read_csv(Region *csv_r, CSV *csv, const char *path) {
+int read_csv(Region *csv_r, CSV *csv, const char *path) {
   char line[4096];
   FILE *f = fopen(path, "r");
   if (f == NULL) {
     fprintf(stderr, "error opening %s: %s\n", path, strerror(errno));
     region_free(csv_r);
-    return;
+    return 0;
   }
 
+  int row_idx = 0;
   while (fgets(line, sizeof(line), f)) {
     line[strcspn(line, "\n")] = '\0';
 
     char *p = line;
     char *field;
 
-    int row_idx = 0;
+    int col_idx = 0;
     while ((field = strsep(&p, ",")) != NULL) {
-      size_t field_idx = csv->rows[row_idx].size++;
-      if (field_idx >= csv->rows[row_idx].capacity) {
+      size_t field_idx = csv->rows[col_idx].size++;
+      if (field_idx >= csv->rows[col_idx].capacity) {
         fprintf(stderr, "maximum capacity of %zu has been reached\n",
-                csv->rows[row_idx].capacity);
+                csv->rows[col_idx].capacity);
         break;
       }
-      set_field_type(&csv->rows[row_idx].fields[csv->rows[row_idx].size++],
+      set_field_type(&csv->rows[col_idx].fields[csv->rows[col_idx].size++],
                      field);
+      col_idx++;
     }
     row_idx++;
   }
   fclose(f);
+  return row_idx;
 }
 
 int validate(const char *path) {
