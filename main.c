@@ -1,4 +1,5 @@
 #define CSV_IMPLEMENTATION
+#define CSV_STDIO
 #include "lib/csv.h"
 #include <getopt.h>
 #include <stdio.h>
