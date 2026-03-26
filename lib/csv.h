@@ -12,6 +12,12 @@ extern "C" {
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef CSV_STDIO
+#define CSV_FPRINTF fprintf
+#else
+#define CSV_FPRINTF(...) ((void)0)
+#endif
+
 #define CSV_CAPACITY 4096 // Number of rows allowed in a csv
 #define ROW_CAPACITY 256  // Number of fields allowed in a row
 
@@ -113,13 +119,14 @@ void file_is_csv(const char *path) {
   size_t path_len = strlen(path);
   size_t ext_len = strlen(ext);
   if (ext_len > path_len) {
-    fprintf(stderr,
-            "length of file extension (%zu) is longer than file path (%zu)\n",
-            ext_len, path_len);
+    CSV_FPRINTF(
+        stderr,
+        "length of file extension (%zu) is longer than file path (%zu)\n",
+        ext_len, path_len);
     exit(EXIT_FAILURE);
   }
   if (strncmp(path + path_len - ext_len, ext, ext_len) != 0) {
-    fprintf(stderr, "file extension is not .csv\n");
+    CSV_FPRINTF(stderr, "file extension is not .csv\n");
     exit(EXIT_FAILURE);
   }
 }
@@ -148,7 +155,7 @@ int read_csv(Region *csv_r, CSV *csv, const char *path) {
   char line[4096];
   FILE *f = fopen(path, "r");
   if (f == NULL) {
-    fprintf(stderr, "error opening %s: %s\n", path, strerror(errno));
+    CSV_FPRINTF(stderr, "error opening %s: %s\n", path, strerror(errno));
     region_free(csv_r);
     return 0;
   }
@@ -164,8 +171,8 @@ int read_csv(Region *csv_r, CSV *csv, const char *path) {
     while ((field = strsep(&p, ",")) != NULL) {
       size_t field_idx = csv->rows[col_idx].size++;
       if (field_idx >= csv->rows[col_idx].capacity) {
-        fprintf(stderr, "maximum capacity of %zu has been reached\n",
-                csv->rows[col_idx].capacity);
+        CSV_FPRINTF(stderr, "maximum capacity of %zu has been reached\n",
+                    csv->rows[col_idx].capacity);
         break;
       }
       set_field_type(&csv->rows[col_idx].fields[csv->rows[col_idx].size++],
