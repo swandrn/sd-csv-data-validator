@@ -171,17 +171,14 @@ int read_csv(Region *csv_r, CSV *csv, const char *path) {
     char *p = line;
     char *field;
 
-    int col_idx = 0;
     while ((field = strsep(&p, ",")) != NULL) {
-      size_t field_idx = csv->rows[col_idx].size++;
-      if (field_idx >= csv->rows[col_idx].capacity) {
+      size_t field_idx = csv->rows[row_idx].size++;
+      if (field_idx >= csv->rows[row_idx].capacity) {
         CSV_FPRINTF(stderr, "maximum capacity of %zu has been reached\n",
-                    csv->rows[col_idx].capacity);
+                    csv->rows[row_idx].capacity);
         break;
       }
-      set_field_type(&csv->rows[col_idx].fields[csv->rows[col_idx].size++],
-                     field);
-      col_idx++;
+      set_field_type(&csv->rows[row_idx].fields[field_idx], field);
     }
     row_idx++;
   }
@@ -192,12 +189,15 @@ int read_csv(Region *csv_r, CSV *csv, const char *path) {
 int validate(const char *path) {
   Region csv_region = region_malloc(1024 * 1024 * 50);
   CSV *csv = (CSV *)region_alloc(&csv_region, sizeof(*csv));
+  csv->capacity = CSV_CAPACITY;
   csv->rows =
-      (Row *)region_alloc(&csv_region, CSV_CAPACITY * sizeof(*csv->rows));
-  csv->rows->fields = (Field *)region_alloc(
-      &csv_region, CSV_CAPACITY * ROW_CAPACITY * sizeof(*csv->rows->fields));
-  csv->rows->capacity = ROW_CAPACITY;
-  csv->rows->size = 0;
+      (Row *)region_alloc(&csv_region, csv->capacity * sizeof(*csv->rows));
+  for (size_t i = 0; i < csv->capacity; i++) {
+    csv->rows[i].capacity = ROW_CAPACITY;
+    csv->rows[i].fields = (Field *)region_alloc(
+        &csv_region, csv->rows[i].capacity * sizeof(*csv->rows->fields));
+    csv->rows[i].size = 0;
+  }
   read_csv(&csv_region, csv, path);
   region_free(&csv_region);
   return 0;
