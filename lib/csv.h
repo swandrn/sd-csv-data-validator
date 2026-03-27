@@ -27,6 +27,7 @@ typedef enum {
   INT_TYPE = 2,
   FLOAT_TYPE = 3,
   STRING_TYPE = 4,
+  BOOLEAN_TYPE = 5,
 } FieldType;
 
 typedef struct {
@@ -147,6 +148,13 @@ FieldType set_field_type(Field *csvf, const char *field) {
   if (is_number) {
     return csvf->field_type = INT_TYPE;
   }
+  size_t bufsize = strlen(field) + 1;
+  char lower_field[bufsize];
+  for (size_t i = 0; i < bufsize; i++) {
+    lower_field[i] = tolower(field[i]);
+  }
+  if (strcmp(lower_field, "true") == 0 || strcmp(lower_field, "false") == 0)
+    return csvf->field_type = BOOLEAN_TYPE;
   // TODO: Add check of properly escaped characters
   return csvf->field_type = STRING_TYPE;
 }
