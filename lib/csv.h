@@ -159,6 +159,43 @@ FieldType set_field_type(Field *csvf, const char *field) {
   return csvf->field_type = STRING_TYPE;
 }
 
+char *csv_getline(char *buf, int size, FILE *fp) {
+  int c;
+  int i = 0;
+
+  if (size <= 0 || buf == NULL || fp == NULL)
+    return NULL;
+
+  while (i < size - 1) {
+    c = fgetc(fp);
+
+    if (c == EOF) {
+      break;
+    }
+
+    if (c == '\n') {
+      break;
+    }
+
+    if (c == '\r') {
+      int next = fgetc(fp);
+      if (next != '\n' && next != EOF) {
+        ungetc(next, fp);
+      }
+      break;
+    }
+
+    buf[i++] = (char)c;
+  }
+
+  if (i == 0 && c == EOF) {
+    return NULL;
+  }
+
+  buf[i] = '\0';
+  return buf;
+}
+
 int read_csv(Region *csv_r, CSV *csv, const char *path) {
   if (csv_r == NULL || csv == NULL || path == NULL) {
     CSV_FPRINTF(stderr, "one or more pointer value is NULL\n");
@@ -173,7 +210,7 @@ int read_csv(Region *csv_r, CSV *csv, const char *path) {
   }
 
   int row_idx = 0;
-  while (fgets(line, sizeof(line), f)) {
+  while (csv_getline(line, sizeof(line), f)) {
     line[strcspn(line, "\n")] = '\0';
 
     char *p = line;
