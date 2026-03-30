@@ -50,3 +50,15 @@ TEST_F(ReadCsvValid, BooleanLikeValues) {
   EXPECT_EQ(csv->rows[3].fields[0].field_type, BOOLEAN_TYPE);
   EXPECT_EQ(csv->rows[4].fields[0].field_type, BOOLEAN_TYPE);
 }
+
+TEST_F(ReadCsvValid, CarriageReturnLineEndings) {
+  EXPECT_EQ(
+      read_csv(&r, csv, "./csv_valid/valid_carriage_return_line_endings.csv"),
+      3);
+  EXPECT_EQ(csv->rows[0].fields[0].field_type, STRING_TYPE);
+  EXPECT_EQ(csv->rows[0].fields[1].field_type, STRING_TYPE);
+  EXPECT_EQ(csv->rows[1].fields[0].field_type, INT_TYPE);
+  EXPECT_EQ(csv->rows[1].fields[1].field_type, STRING_TYPE);
+  EXPECT_EQ(csv->rows[2].fields[0].field_type, INT_TYPE);
+  EXPECT_EQ(csv->rows[2].fields[1].field_type, STRING_TYPE);
+}
