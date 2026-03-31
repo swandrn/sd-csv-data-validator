@@ -248,3 +248,23 @@ TEST_F(ReadCsvValid, EmailLikeStrings) {
   EXPECT_EQ(csv->rows[2].size, 1);
   EXPECT_EQ(csv->rows[2].fields[0].field_type, STRING_FIELD);
 }
+
+TEST_F(ReadCsvValid, EmptyFields) {
+  EXPECT_EQ(read_csv(&r, csv, "./csv_valid/valid_empty_fields.csv"), 4);
+  EXPECT_EQ(csv->rows[0].size, 4);
+  EXPECT_EQ(csv->rows[1].size, 4);
+  EXPECT_EQ(csv->rows[1].fields[0].field_type, INT_FIELD);
+  EXPECT_EQ(csv->rows[1].fields[1].field_type, STRING_FIELD);
+  EXPECT_EQ(csv->rows[1].fields[2].field_type, NULL_FIELD);
+  EXPECT_EQ(csv->rows[1].fields[3].field_type, STRING_FIELD);
+  EXPECT_EQ(csv->rows[2].size, 4);
+  EXPECT_EQ(csv->rows[2].fields[0].field_type, INT_FIELD);
+  EXPECT_EQ(csv->rows[2].fields[1].field_type, NULL_FIELD);
+  EXPECT_EQ(csv->rows[2].fields[2].field_type, STRING_FIELD);
+  EXPECT_EQ(csv->rows[2].fields[3].field_type, NULL_FIELD);
+  EXPECT_EQ(csv->rows[3].size, 4);
+  EXPECT_EQ(csv->rows[3].fields[0].field_type, INT_FIELD);
+  EXPECT_EQ(csv->rows[3].fields[1].field_type, STRING_FIELD);
+  EXPECT_EQ(csv->rows[3].fields[2].field_type, NULL_FIELD);
+  EXPECT_EQ(csv->rows[3].fields[3].field_type, NULL_FIELD);
+}
