@@ -226,3 +226,15 @@ TEST_F(ReadCsvValid, DelimiterInsideQuotes) {
   EXPECT_EQ(csv->rows[2].fields[0].field_type, INT_FIELD);
   EXPECT_EQ(csv->rows[2].fields[1].field_type, STRING_FIELD);
 }
+
+TEST_F(ReadCsvValid, DuplicateHeaderNames) {
+  EXPECT_EQ(read_csv(&r, csv, "./csv_valid/valid_duplicate_header_names.csv"),
+            3);
+  EXPECT_EQ(csv->rows[0].fields[0].field_type, STRING_FIELD);
+  EXPECT_EQ(csv->rows[1].fields[0].field_type, INT_FIELD);
+  EXPECT_EQ(csv->rows[1].fields[1].field_type, STRING_FIELD);
+  EXPECT_EQ(csv->rows[1].fields[2].field_type, STRING_FIELD);
+  EXPECT_EQ(csv->rows[2].fields[0].field_type, INT_FIELD);
+  EXPECT_EQ(csv->rows[2].fields[1].field_type, STRING_FIELD);
+  EXPECT_EQ(csv->rows[2].fields[2].field_type, STRING_FIELD);
+}
