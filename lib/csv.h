@@ -220,6 +220,7 @@ char *csv_getfield(char **buf) {
     case START_FIELD:
       if (**buf == '"') {
         state = IN_QUOTED;
+        (*buf)++;
       } else if (**buf == ',') {
         *out = '\0';
         (*buf)++;
