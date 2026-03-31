@@ -46,6 +46,13 @@ typedef struct {
   size_t capacity;
 } CSV;
 
+typedef enum {
+  START_FIELD,
+  IN_UNQUOTED,
+  IN_QUOTED,
+  AFTER_QUOTE,
+} ParserState;
+
 typedef struct {
   size_t size;
   size_t capacity;
@@ -57,6 +64,7 @@ extern "C" Region region_malloc(size_t capacity);
 extern "C" void *region_alloc(Region *r, size_t size);
 extern "C" void region_reset(Region *r);
 extern "C" void region_free(Region *r);
+extern "C" char *csv_getfield(char **buf);
 extern "C" int read_csv(Region *csv_r, CSV *csv, const char *path);
 extern "C" int validate(const char *path);
 #else
@@ -64,6 +72,7 @@ extern Region region_malloc(size_t capacity);
 extern void *region_alloc(Region *r, size_t size);
 extern void region_reset(Region *r);
 extern void region_free(Region *r);
+extern char *csv_getfield(char **buf);
 extern int read_csv(Region *csv_r, CSV *csv, const char *path);
 extern int validate(const char *path);
 #endif
@@ -196,6 +205,89 @@ char *csv_getline(char *buf, int size, FILE *fp) {
   return buf;
 }
 
+// Separate fields on commas and move pointer the start of the next field
+char *csv_getfield(char **buf) {
+  ParserState state = START_FIELD;
+  char *start = *buf;
+  char *out = start;
+
+  if (start == NULL) {
+    return NULL;
+  }
+
+  while (*out != '\0') {
+    switch (state) {
+    case START_FIELD:
+      if (**buf == '"') {
+        state = IN_QUOTED;
+      } else if (**buf == ',') {
+        *out = '\0';
+        (*buf)++;
+        return start;
+      } else {
+        state = IN_UNQUOTED;
+        // Append char and slide pointer forward by one
+        *out = **buf;
+        out++;
+        (*buf)++;
+      }
+      break;
+    case IN_UNQUOTED:
+      if (**buf == '"') {
+        buf = NULL;
+        return NULL;
+      } else if (**buf == ',') {
+        *out = '\0';
+        (*buf)++;
+        return start;
+      }
+      // Append char and slide pointer forward by one
+      *out = **buf;
+      out++;
+      (*buf)++;
+      break;
+    case IN_QUOTED:
+      if (**buf == '"') {
+        state = AFTER_QUOTE;
+        (*buf)++;
+        continue;
+      }
+      // Append char and slide pointer forward by one
+      *out = **buf;
+      out++;
+      (*buf)++;
+      break;
+    case AFTER_QUOTE:
+      if (**buf == '"') {
+        char *next = *buf + 1;
+        if (*next == ',' || *next == '\0') {
+          *out = '\0';
+          out++;
+          (*buf)++;
+          break;
+        }
+        // Append char and slide pointer forward by one
+        *out = **buf;
+        out++;
+        (*buf)++;
+      } else if (**buf == ',') {
+        *out = '\0';
+        (*buf)++;
+        return start;
+      } else {
+        state = IN_QUOTED;
+        // Append char and slide pointer forward by one
+        *out = **buf;
+        out++;
+        (*buf)++;
+      }
+      break;
+    }
+  }
+  *buf = NULL;
+  return start;
+}
+
 int read_csv(Region *csv_r, CSV *csv, const char *path) {
   if (csv_r == NULL || csv == NULL || path == NULL) {
     CSV_FPRINTF(stderr, "one or more pointer value is NULL\n");
@@ -216,7 +308,7 @@ int read_csv(Region *csv_r, CSV *csv, const char *path) {
     char *p = line;
     char *field;
 
-    while ((field = strsep(&p, ",")) != NULL) {
+    while ((field = csv_getfield(&p)) != NULL) {
       size_t field_idx = csv->rows[row_idx].size++;
       if (field_idx >= csv->rows[row_idx].capacity) {
         CSV_FPRINTF(stderr, "maximum capacity of %zu has been reached\n",
