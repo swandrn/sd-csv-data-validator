@@ -194,3 +194,11 @@ TEST_F(ReadCsvValid, CRLFLineEndings) {
   EXPECT_EQ(csv->rows[2].fields[0].field_type, INT_TYPE);
   EXPECT_EQ(csv->rows[2].fields[1].field_type, STRING_TYPE);
 }
+
+TEST_F(ReadCsvValid, CurrencyLikeValues) {
+  EXPECT_EQ(read_csv(&r, csv, "./csv_valid/valid_currency_like_values.csv"), 4);
+  EXPECT_EQ(csv->rows[0].fields[0].field_type, STRING_TYPE);
+  EXPECT_EQ(csv->rows[1].fields[0].field_type, STRING_TYPE);
+  EXPECT_EQ(csv->rows[2].fields[0].field_type, STRING_TYPE);
+  EXPECT_EQ(csv->rows[3].fields[0].field_type, STRING_TYPE);
+}
