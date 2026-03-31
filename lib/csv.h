@@ -22,12 +22,12 @@ extern "C" {
 #define ROW_CAPACITY 256  // Number of fields allowed in a row
 
 typedef enum {
-  UNDEFINED_TYPE = 0,
-  NULL_TYPE = 1,
-  INT_TYPE = 2,
-  FLOAT_TYPE = 3,
-  STRING_TYPE = 4,
-  BOOLEAN_TYPE = 5,
+  UNDEFINED_FIELD = 0,
+  NULL_FIELD = 1,
+  INT_FIELD = 2,
+  FLOAT_FIELD = 3,
+  STRING_FIELD = 4,
+  BOOLEAN_FIELD = 5,
 } FieldType;
 
 typedef struct {
@@ -142,10 +142,10 @@ void file_is_csv(const char *path) {
 }
 
 FieldType set_field_type(Field *csvf, const char *field) {
-  csvf->field_type = UNDEFINED_TYPE;
+  csvf->field_type = UNDEFINED_FIELD;
   int field_len = strlen(field);
   if (field_len == 0) {
-    return csvf->field_type = NULL_TYPE;
+    return csvf->field_type = NULL_FIELD;
   }
   bool is_number = true;
   for (int i = 0; i < field_len; i++) {
@@ -155,7 +155,7 @@ FieldType set_field_type(Field *csvf, const char *field) {
     };
   }
   if (is_number) {
-    return csvf->field_type = INT_TYPE;
+    return csvf->field_type = INT_FIELD;
   }
   size_t bufsize = strlen(field) + 1;
   char lower_field[bufsize];
@@ -163,9 +163,9 @@ FieldType set_field_type(Field *csvf, const char *field) {
     lower_field[i] = tolower(field[i]);
   }
   if (strcmp(lower_field, "true") == 0 || strcmp(lower_field, "false") == 0)
-    return csvf->field_type = BOOLEAN_TYPE;
+    return csvf->field_type = BOOLEAN_FIELD;
   // TODO: Add check of properly escaped characters
-  return csvf->field_type = STRING_TYPE;
+  return csvf->field_type = STRING_FIELD;
 }
 
 char *csv_getline(char *buf, int size, FILE *fp) {

@@ -124,105 +124,105 @@ protected:
 
 TEST_F(ReadCsvValid, AllEmptyRows) {
   EXPECT_EQ(read_csv(&r, csv, "./csv_valid/valid_all_empty_rows.csv"), 4);
-  EXPECT_EQ(csv->rows[0].fields[0].field_type, STRING_TYPE);
-  EXPECT_EQ(csv->rows[1].fields[0].field_type, NULL_TYPE);
+  EXPECT_EQ(csv->rows[0].fields[0].field_type, STRING_FIELD);
+  EXPECT_EQ(csv->rows[1].fields[0].field_type, NULL_FIELD);
 }
 
 TEST_F(ReadCsvValid, BlankLinesBetweenRows) {
   EXPECT_EQ(read_csv(&r, csv, "./csv_valid/valid_blank_lines_between_rows.csv"),
             6);
-  EXPECT_EQ(csv->rows[0].fields[0].field_type, STRING_TYPE);
-  EXPECT_EQ(csv->rows[0].fields[1].field_type, STRING_TYPE);
-  EXPECT_EQ(csv->rows[1].fields[0].field_type, INT_TYPE);
-  EXPECT_EQ(csv->rows[1].fields[1].field_type, STRING_TYPE);
-  EXPECT_EQ(csv->rows[2].fields[0].field_type, NULL_TYPE);
+  EXPECT_EQ(csv->rows[0].fields[0].field_type, STRING_FIELD);
+  EXPECT_EQ(csv->rows[0].fields[1].field_type, STRING_FIELD);
+  EXPECT_EQ(csv->rows[1].fields[0].field_type, INT_FIELD);
+  EXPECT_EQ(csv->rows[1].fields[1].field_type, STRING_FIELD);
+  EXPECT_EQ(csv->rows[2].fields[0].field_type, NULL_FIELD);
 }
 
 TEST_F(ReadCsvValid, BooleanLikeValues) {
   EXPECT_EQ(read_csv(&r, csv, "./csv_valid/valid_boolean_like_values.csv"), 5);
-  EXPECT_EQ(csv->rows[0].fields[0].field_type, STRING_TYPE);
-  EXPECT_EQ(csv->rows[1].fields[0].field_type, BOOLEAN_TYPE);
-  EXPECT_EQ(csv->rows[2].fields[0].field_type, BOOLEAN_TYPE);
-  EXPECT_EQ(csv->rows[3].fields[0].field_type, BOOLEAN_TYPE);
-  EXPECT_EQ(csv->rows[4].fields[0].field_type, BOOLEAN_TYPE);
+  EXPECT_EQ(csv->rows[0].fields[0].field_type, STRING_FIELD);
+  EXPECT_EQ(csv->rows[1].fields[0].field_type, BOOLEAN_FIELD);
+  EXPECT_EQ(csv->rows[2].fields[0].field_type, BOOLEAN_FIELD);
+  EXPECT_EQ(csv->rows[3].fields[0].field_type, BOOLEAN_FIELD);
+  EXPECT_EQ(csv->rows[4].fields[0].field_type, BOOLEAN_FIELD);
 }
 
 TEST_F(ReadCsvValid, CarriageReturnLineEndings) {
   EXPECT_EQ(
       read_csv(&r, csv, "./csv_valid/valid_carriage_return_line_endings.csv"),
       3);
-  EXPECT_EQ(csv->rows[0].fields[0].field_type, STRING_TYPE);
-  EXPECT_EQ(csv->rows[0].fields[1].field_type, STRING_TYPE);
-  EXPECT_EQ(csv->rows[1].fields[0].field_type, INT_TYPE);
-  EXPECT_EQ(csv->rows[1].fields[1].field_type, STRING_TYPE);
-  EXPECT_EQ(csv->rows[2].fields[0].field_type, INT_TYPE);
-  EXPECT_EQ(csv->rows[2].fields[1].field_type, STRING_TYPE);
+  EXPECT_EQ(csv->rows[0].fields[0].field_type, STRING_FIELD);
+  EXPECT_EQ(csv->rows[0].fields[1].field_type, STRING_FIELD);
+  EXPECT_EQ(csv->rows[1].fields[0].field_type, INT_FIELD);
+  EXPECT_EQ(csv->rows[1].fields[1].field_type, STRING_FIELD);
+  EXPECT_EQ(csv->rows[2].fields[0].field_type, INT_FIELD);
+  EXPECT_EQ(csv->rows[2].fields[1].field_type, STRING_FIELD);
 }
 
 TEST_F(ReadCsvValid, ColumnWithMixedTypes) {
   EXPECT_EQ(read_csv(&r, csv, "./csv_valid/valid_column_with_mixed_types.csv"),
             5);
-  EXPECT_EQ(csv->rows[0].fields[0].field_type, STRING_TYPE);
-  EXPECT_EQ(csv->rows[1].fields[0].field_type, INT_TYPE);
-  EXPECT_EQ(csv->rows[2].fields[0].field_type, STRING_TYPE);
-  EXPECT_EQ(csv->rows[3].fields[0].field_type, STRING_TYPE);
-  EXPECT_EQ(csv->rows[4].fields[0].field_type, NULL_TYPE);
+  EXPECT_EQ(csv->rows[0].fields[0].field_type, STRING_FIELD);
+  EXPECT_EQ(csv->rows[1].fields[0].field_type, INT_FIELD);
+  EXPECT_EQ(csv->rows[2].fields[0].field_type, STRING_FIELD);
+  EXPECT_EQ(csv->rows[3].fields[0].field_type, STRING_FIELD);
+  EXPECT_EQ(csv->rows[4].fields[0].field_type, NULL_FIELD);
 }
 
 TEST_F(ReadCsvValid, CommaOnlyField) {
   EXPECT_EQ(read_csv(&r, csv, "./csv_valid/valid_comma_only_field.csv"), 3);
-  EXPECT_EQ(csv->rows[0].fields[0].field_type, STRING_TYPE);
-  EXPECT_EQ(csv->rows[1].fields[0].field_type, STRING_TYPE);
-  EXPECT_EQ(csv->rows[2].fields[0].field_type, STRING_TYPE);
+  EXPECT_EQ(csv->rows[0].fields[0].field_type, STRING_FIELD);
+  EXPECT_EQ(csv->rows[1].fields[0].field_type, STRING_FIELD);
+  EXPECT_EQ(csv->rows[2].fields[0].field_type, STRING_FIELD);
 }
 
 TEST_F(ReadCsvValid, CommentLikeTextAsData) {
   EXPECT_EQ(
       read_csv(&r, csv, "./csv_valid/valid_comment_like_text_as_data.csv"), 4);
-  EXPECT_EQ(csv->rows[0].fields[0].field_type, STRING_TYPE);
-  EXPECT_EQ(csv->rows[1].fields[0].field_type, STRING_TYPE);
-  EXPECT_EQ(csv->rows[2].fields[0].field_type, STRING_TYPE);
-  EXPECT_EQ(csv->rows[3].fields[0].field_type, STRING_TYPE);
+  EXPECT_EQ(csv->rows[0].fields[0].field_type, STRING_FIELD);
+  EXPECT_EQ(csv->rows[1].fields[0].field_type, STRING_FIELD);
+  EXPECT_EQ(csv->rows[2].fields[0].field_type, STRING_FIELD);
+  EXPECT_EQ(csv->rows[3].fields[0].field_type, STRING_FIELD);
 }
 
 TEST_F(ReadCsvValid, CRLFLineEndings) {
   EXPECT_EQ(read_csv(&r, csv, "./csv_valid/valid_crlf_line_endings.csv"), 3);
-  EXPECT_EQ(csv->rows[0].fields[0].field_type, STRING_TYPE);
-  EXPECT_EQ(csv->rows[0].fields[1].field_type, STRING_TYPE);
-  EXPECT_EQ(csv->rows[1].fields[0].field_type, INT_TYPE);
-  EXPECT_EQ(csv->rows[1].fields[1].field_type, STRING_TYPE);
-  EXPECT_EQ(csv->rows[2].fields[0].field_type, INT_TYPE);
-  EXPECT_EQ(csv->rows[2].fields[1].field_type, STRING_TYPE);
+  EXPECT_EQ(csv->rows[0].fields[0].field_type, STRING_FIELD);
+  EXPECT_EQ(csv->rows[0].fields[1].field_type, STRING_FIELD);
+  EXPECT_EQ(csv->rows[1].fields[0].field_type, INT_FIELD);
+  EXPECT_EQ(csv->rows[1].fields[1].field_type, STRING_FIELD);
+  EXPECT_EQ(csv->rows[2].fields[0].field_type, INT_FIELD);
+  EXPECT_EQ(csv->rows[2].fields[1].field_type, STRING_FIELD);
 }
 
 TEST_F(ReadCsvValid, CurrencyLikeValues) {
   EXPECT_EQ(read_csv(&r, csv, "./csv_valid/valid_currency_like_values.csv"), 4);
-  EXPECT_EQ(csv->rows[0].fields[0].field_type, STRING_TYPE);
-  EXPECT_EQ(csv->rows[1].fields[0].field_type, STRING_TYPE);
-  EXPECT_EQ(csv->rows[2].fields[0].field_type, STRING_TYPE);
-  EXPECT_EQ(csv->rows[3].fields[0].field_type, STRING_TYPE);
+  EXPECT_EQ(csv->rows[0].fields[0].field_type, STRING_FIELD);
+  EXPECT_EQ(csv->rows[1].fields[0].field_type, STRING_FIELD);
+  EXPECT_EQ(csv->rows[2].fields[0].field_type, STRING_FIELD);
+  EXPECT_EQ(csv->rows[3].fields[0].field_type, STRING_FIELD);
 }
 
 TEST_F(ReadCsvValid, DateLikeValues) {
   EXPECT_EQ(read_csv(&r, csv, "./csv_valid/valid_date_like_values.csv"), 3);
-  EXPECT_EQ(csv->rows[0].fields[0].field_type, STRING_TYPE);
-  EXPECT_EQ(csv->rows[1].fields[0].field_type, STRING_TYPE);
-  EXPECT_EQ(csv->rows[2].fields[0].field_type, STRING_TYPE);
+  EXPECT_EQ(csv->rows[0].fields[0].field_type, STRING_FIELD);
+  EXPECT_EQ(csv->rows[1].fields[0].field_type, STRING_FIELD);
+  EXPECT_EQ(csv->rows[2].fields[0].field_type, STRING_FIELD);
 }
 
 TEST_F(ReadCsvValid, DatetimeLikeValues) {
   EXPECT_EQ(read_csv(&r, csv, "./csv_valid/valid_datetime_like_values.csv"), 3);
-  EXPECT_EQ(csv->rows[0].fields[0].field_type, STRING_TYPE);
-  EXPECT_EQ(csv->rows[1].fields[0].field_type, STRING_TYPE);
-  EXPECT_EQ(csv->rows[2].fields[0].field_type, STRING_TYPE);
+  EXPECT_EQ(csv->rows[0].fields[0].field_type, STRING_FIELD);
+  EXPECT_EQ(csv->rows[1].fields[0].field_type, STRING_FIELD);
+  EXPECT_EQ(csv->rows[2].fields[0].field_type, STRING_FIELD);
 }
 
 TEST_F(ReadCsvValid, DelimiterInsideQuotes) {
   EXPECT_EQ(read_csv(&r, csv, "./csv_valid/valid_delimiter_inside_quotes.csv"),
             3);
-  EXPECT_EQ(csv->rows[0].fields[0].field_type, STRING_TYPE);
-  EXPECT_EQ(csv->rows[1].fields[0].field_type, INT_TYPE);
-  EXPECT_EQ(csv->rows[1].fields[1].field_type, STRING_TYPE);
-  EXPECT_EQ(csv->rows[2].fields[0].field_type, INT_TYPE);
-  EXPECT_EQ(csv->rows[2].fields[1].field_type, STRING_TYPE);
+  EXPECT_EQ(csv->rows[0].fields[0].field_type, STRING_FIELD);
+  EXPECT_EQ(csv->rows[1].fields[0].field_type, INT_FIELD);
+  EXPECT_EQ(csv->rows[1].fields[1].field_type, STRING_FIELD);
+  EXPECT_EQ(csv->rows[2].fields[0].field_type, INT_FIELD);
+  EXPECT_EQ(csv->rows[2].fields[1].field_type, STRING_FIELD);
 }
