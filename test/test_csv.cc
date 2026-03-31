@@ -168,3 +168,10 @@ TEST_F(ReadCsvValid, ColumnWithMixedTypes) {
   EXPECT_EQ(csv->rows[3].fields[0].field_type, STRING_TYPE);
   EXPECT_EQ(csv->rows[4].fields[0].field_type, NULL_TYPE);
 }
+
+TEST_F(ReadCsvValid, CommaOnlyField) {
+  EXPECT_EQ(read_csv(&r, csv, "./csv_valid/valid_comma_only_field.csv"), 3);
+  EXPECT_EQ(csv->rows[0].fields[0].field_type, STRING_TYPE);
+  EXPECT_EQ(csv->rows[1].fields[0].field_type, STRING_TYPE);
+  EXPECT_EQ(csv->rows[2].fields[0].field_type, STRING_TYPE);
+}
