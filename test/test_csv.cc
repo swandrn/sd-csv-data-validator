@@ -268,3 +268,8 @@ TEST_F(ReadCsvValid, EmptyFields) {
   EXPECT_EQ(csv->rows[3].fields[2].field_type, NULL_FIELD);
   EXPECT_EQ(csv->rows[3].fields[3].field_type, NULL_FIELD);
 }
+
+TEST_F(ReadCsvValid, EmptyFile) {
+  EXPECT_EQ(read_csv(&r, csv, "./csv_valid/valid_empty_file.csv"), 0);
+  EXPECT_EQ(csv->size, 0);
+}
