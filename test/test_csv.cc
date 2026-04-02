@@ -273,3 +273,13 @@ TEST_F(ReadCsvValid, EmptyFile) {
   EXPECT_EQ(read_csv(&r, csv, "./csv_valid/valid_empty_file.csv"), 0);
   EXPECT_EQ(csv->size, 0);
 }
+
+TEST_F(ReadCsvValid, FloatsOnly) {
+  EXPECT_EQ(read_csv(&r, csv, "./csv_valid/valid_floats_only.csv"), 3);
+  EXPECT_EQ(csv->rows[0].size, 2);
+  EXPECT_EQ(csv->rows[0].fields[0].field_type, STRING_FIELD);
+  EXPECT_EQ(csv->rows[1].size, 2);
+  EXPECT_EQ(csv->rows[1].fields[0].field_type, FLOAT_FIELD);
+  EXPECT_EQ(csv->rows[2].size, 2);
+  EXPECT_EQ(csv->rows[2].fields[0].field_type, FLOAT_FIELD);
+}
