@@ -141,22 +141,47 @@ void file_is_csv(const char *path) {
   }
 }
 
+bool str_is_float(const char *s) {
+  while (isspace((unsigned char)*s))
+    s++;
+  if (*s == '\0')
+    return false;
+
+  char *end;
+  errno = 0;
+  strtof(s, &end);
+
+  if (s == end)
+    return false; // no conversion happened
+
+  while (isspace((unsigned char)*end))
+    end++;
+  if (*end != '\0')
+    return false; // extra junk at end
+
+  return true;
+}
+
 FieldType set_field_type(Field *csvf, const char *field) {
   csvf->field_type = UNDEFINED_FIELD;
+  if (field == NULL)
+    return csvf->field_type;
   int field_len = strlen(field);
   if (field_len == 0) {
     return csvf->field_type = NULL_FIELD;
   }
-  bool is_number = true;
+  bool is_int = true;
   for (int i = 0; i < field_len; i++) {
     if (!isdigit(field[i])) {
-      is_number = false;
+      is_int = false;
       break;
     };
   }
-  if (is_number) {
+  if (is_int) {
     return csvf->field_type = INT_FIELD;
   }
+  if (str_is_float(field))
+    return csvf->field_type = FLOAT_FIELD;
   size_t bufsize = strlen(field) + 1;
   char lower_field[bufsize];
   for (size_t i = 0; i < bufsize; i++) {

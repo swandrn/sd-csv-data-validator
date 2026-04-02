@@ -165,7 +165,7 @@ TEST_F(ReadCsvValid, ColumnWithMixedTypes) {
   EXPECT_EQ(csv->rows[0].fields[0].field_type, STRING_FIELD);
   EXPECT_EQ(csv->rows[1].fields[0].field_type, INT_FIELD);
   EXPECT_EQ(csv->rows[2].fields[0].field_type, STRING_FIELD);
-  EXPECT_EQ(csv->rows[3].fields[0].field_type, STRING_FIELD);
+  EXPECT_EQ(csv->rows[3].fields[0].field_type, FLOAT_FIELD);
   EXPECT_EQ(csv->rows[4].fields[0].field_type, NULL_FIELD);
 }
 
