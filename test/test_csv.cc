@@ -283,3 +283,10 @@ TEST_F(ReadCsvValid, QuotedFieldsWithEscapedQuotes) {
   EXPECT_EQ(csv->rows[1].size, 2);
   EXPECT_EQ(csv->rows[2].size, 2);
 }
+
+TEST_F(ReadCsvValid, RepeatedColumns) {
+  EXPECT_EQ(read_csv(&r, csv, "./csv_valid/valid_repeated_columns.csv"), 3);
+  EXPECT_EQ(csv->rows[0].size, 4);
+  EXPECT_EQ(csv->rows[1].size, 4);
+  EXPECT_EQ(csv->rows[2].size, 4);
+}
