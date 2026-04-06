@@ -267,3 +267,10 @@ TEST_F(ReadCsvValid, PhoneNumberLikeStrings) {
   EXPECT_EQ(csv->rows[1].size, 1);
   EXPECT_EQ(csv->rows[2].size, 1);
 }
+
+TEST_F(ReadCsvValid, QuoteOnlyField) {
+  EXPECT_EQ(read_csv(&r, csv, "./csv_valid/valid_quote_only_field.csv"), 3);
+  EXPECT_EQ(csv->rows[0].size, 1);
+  EXPECT_EQ(csv->rows[1].size, 1);
+  EXPECT_EQ(csv->rows[2].size, 1);
+}
