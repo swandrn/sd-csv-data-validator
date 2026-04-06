@@ -303,3 +303,11 @@ TEST_F(ReadCsvValid, JsonLikeStrings) {
   EXPECT_EQ(csv->rows[2].size, 1);
   EXPECT_EQ(csv->rows[2].fields[0].field_type, STRING_FIELD);
 }
+
+TEST_F(ReadCsvValid, LineFeedLineEndings) {
+  EXPECT_EQ(read_csv(&r, csv, "./csv_valid/valid_line_feed_line_endings.csv"),
+            3);
+  EXPECT_EQ(csv->rows[0].size, 2);
+  EXPECT_EQ(csv->rows[1].size, 2);
+  EXPECT_EQ(csv->rows[2].size, 2);
+}
