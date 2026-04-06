@@ -156,6 +156,27 @@ bool csv_is_line_ending(char c, FILE *fp) {
   return false;
 }
 
+bool str_is_int(const char *s) {
+  while (isspace((unsigned char)*s))
+    s++;
+  if (*s == '\0')
+    return false;
+
+  char *end;
+  errno = 0;
+  strtol(s, &end, 10);
+
+  if (s == end)
+    return false; // no conversion happened
+
+  while (isspace((unsigned char)*end))
+    end++;
+  if (*end != '\0')
+    return false; // extra junk at end
+
+  return true;
+}
+
 bool str_is_float(const char *s) {
   while (isspace((unsigned char)*s))
     s++;
@@ -185,14 +206,7 @@ FieldType set_field_type(Field *csvf, const char *field) {
   if (field_len == 0) {
     return csvf->field_type = NULL_FIELD;
   }
-  bool is_int = true;
-  for (int i = 0; i < field_len; i++) {
-    if (!isdigit(field[i])) {
-      is_int = false;
-      break;
-    };
-  }
-  if (is_int) {
+  if (str_is_int(field)) {
     return csvf->field_type = INT_FIELD;
   }
   if (str_is_float(field))
