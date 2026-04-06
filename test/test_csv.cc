@@ -259,3 +259,11 @@ TEST_F(ReadCsvValid, PercentageLikeValues) {
   EXPECT_EQ(csv->rows[2].size, 1);
   EXPECT_EQ(csv->rows[3].size, 1);
 }
+
+TEST_F(ReadCsvValid, PhoneNumberLikeStrings) {
+  EXPECT_EQ(
+      read_csv(&r, csv, "./csv_valid/valid_phone_number_like_strings.csv"), 3);
+  EXPECT_EQ(csv->rows[0].size, 1);
+  EXPECT_EQ(csv->rows[1].size, 1);
+  EXPECT_EQ(csv->rows[2].size, 1);
+}
