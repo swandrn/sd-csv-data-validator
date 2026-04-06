@@ -365,3 +365,12 @@ TEST_F(ReadCsvValid, UrlLikeStrings) {
   EXPECT_EQ(csv->rows[1].size, 1);
   EXPECT_EQ(csv->rows[2].size, 1);
 }
+
+TEST_F(ReadCsvValid, UTF8MultibyteCharacters) {
+  EXPECT_EQ(
+      read_csv(&r, csv, "./csv_valid/valid_utf8_multibyte_characters.csv"), 4);
+  EXPECT_EQ(csv->rows[0].size, 2);
+  EXPECT_EQ(csv->rows[1].size, 2);
+  EXPECT_EQ(csv->rows[2].size, 2);
+  EXPECT_EQ(csv->rows[3].size, 2);
+}
