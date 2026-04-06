@@ -358,3 +358,10 @@ TEST_F(ReadCsvValid, UniformValues) {
   EXPECT_EQ(csv->rows[2].size, 3);
   EXPECT_EQ(csv->rows[3].size, 3);
 }
+
+TEST_F(ReadCsvValid, UrlLikeStrings) {
+  EXPECT_EQ(read_csv(&r, csv, "./csv_valid/valid_url_like_strings.csv"), 3);
+  EXPECT_EQ(csv->rows[0].size, 1);
+  EXPECT_EQ(csv->rows[1].size, 1);
+  EXPECT_EQ(csv->rows[2].size, 1);
+}
