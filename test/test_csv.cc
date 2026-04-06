@@ -318,3 +318,10 @@ TEST_F(ReadCsvValid, LongTextFields) {
   EXPECT_EQ(csv->rows[1].size, 2);
   EXPECT_EQ(csv->rows[2].size, 2);
 }
+
+TEST_F(ReadCsvValid, ManyColumns) {
+  EXPECT_EQ(read_csv(&r, csv, "./csv_valid/valid_many_columns.csv"), 3);
+  EXPECT_EQ(csv->rows[0].size, 32);
+  EXPECT_EQ(csv->rows[1].size, 32);
+  EXPECT_EQ(csv->rows[2].size, 32);
+}
