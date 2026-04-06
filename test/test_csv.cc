@@ -243,3 +243,10 @@ TEST_F(ReadCsvValid, NullLikeLiterals) {
   EXPECT_EQ(csv->rows[3].size, 1);
   EXPECT_EQ(csv->rows[4].size, 1);
 }
+
+TEST_F(ReadCsvValid, PathLikeStrings) {
+  EXPECT_EQ(read_csv(&r, csv, "./csv_valid/valid_path_like_strings.csv"), 3);
+  EXPECT_EQ(csv->rows[0].size, 1);
+  EXPECT_EQ(csv->rows[1].size, 1);
+  EXPECT_EQ(csv->rows[2].size, 1);
+}
