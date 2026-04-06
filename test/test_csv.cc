@@ -337,3 +337,14 @@ TEST_F(ReadCsvValid, MixedEmptyAndNonEmptyRows) {
   EXPECT_EQ(csv->rows[4].size, 3);
   EXPECT_EQ(csv->rows[5].size, 3);
 }
+
+TEST_F(ReadCsvValid, MixedNumericAndStringValues) {
+  EXPECT_EQ(read_csv(&r, csv,
+                     "./csv_valid/valid_mixed_numeric_and_string_columns.csv"),
+            5);
+  EXPECT_EQ(csv->rows[0].fields[0].field_type, STRING_FIELD);
+  EXPECT_EQ(csv->rows[1].fields[0].field_type, INT_FIELD);
+  EXPECT_EQ(csv->rows[2].fields[0].field_type, STRING_FIELD);
+  EXPECT_EQ(csv->rows[3].fields[0].field_type, FLOAT_FIELD);
+  EXPECT_EQ(csv->rows[4].fields[0].field_type, STRING_FIELD);
+}
