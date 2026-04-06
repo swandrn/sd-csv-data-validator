@@ -320,3 +320,10 @@ TEST_F(ReadCsvValid, SingleCell) {
   EXPECT_EQ(read_csv(&r, csv, "./csv_valid/valid_single_cell.csv"), 1);
   EXPECT_EQ(csv->rows[0].size, 1);
 }
+
+TEST_F(ReadCsvValid, SpaceOnlyField) {
+  EXPECT_EQ(read_csv(&r, csv, "./csv_valid/valid_space_only_field.csv"), 3);
+  EXPECT_EQ(csv->rows[0].size, 1);
+  EXPECT_EQ(csv->rows[1].size, 1);
+  EXPECT_EQ(csv->rows[2].size, 1);
+}
