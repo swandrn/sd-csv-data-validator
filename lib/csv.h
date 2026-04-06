@@ -64,7 +64,7 @@ extern "C" Region region_malloc(size_t capacity);
 extern "C" void *region_alloc(Region *r, size_t size);
 extern "C" void region_reset(Region *r);
 extern "C" void region_free(Region *r);
-extern "C" char *csv_getfield(char **buf);
+extern "C" int csv_parse(int max_field_size, FILE *fp, CSV *csv);
 extern "C" int read_csv(Region *csv_r, CSV *csv, const char *path);
 extern "C" int validate(const char *path);
 #else
@@ -72,7 +72,7 @@ extern Region region_malloc(size_t capacity);
 extern void *region_alloc(Region *r, size_t size);
 extern void region_reset(Region *r);
 extern void region_free(Region *r);
-extern char *csv_getfield(char **buf);
+extern int csv_parse(int max_field_size, FILE *fp, CSV *csv);
 extern int read_csv(Region *csv_r, CSV *csv, const char *path);
 extern int validate(const char *path);
 #endif
@@ -141,6 +141,21 @@ void file_is_csv(const char *path) {
   }
 }
 
+bool csv_is_line_ending(char c, FILE *fp) {
+  if (c == '\n') {
+    return true;
+  }
+
+  if (c == '\r') {
+    int next = fgetc(fp);
+    if (next != '\n' && next != EOF) {
+      ungetc(next, fp);
+    }
+    return true;
+  }
+  return false;
+}
+
 bool str_is_float(const char *s) {
   while (isspace((unsigned char)*s))
     s++;
@@ -193,125 +208,112 @@ FieldType set_field_type(Field *csvf, const char *field) {
   return csvf->field_type = STRING_FIELD;
 }
 
-char *csv_getline(char *buf, int size, FILE *fp) {
-  int c;
-  int i = 0;
-
-  if (size <= 0 || buf == NULL || fp == NULL)
-    return NULL;
-
-  while (i < size - 1) {
-    c = fgetc(fp);
-
-    if (c == EOF) {
-      break;
-    }
-
-    if (c == '\n') {
-      break;
-    }
-
-    if (c == '\r') {
-      int next = fgetc(fp);
-      if (next != '\n' && next != EOF) {
-        ungetc(next, fp);
-      }
-      break;
-    }
-
-    buf[i++] = (char)c;
-  }
-
-  if (i == 0 && c == EOF) {
-    return NULL;
-  }
-
-  buf[i] = '\0';
-  return buf;
+// Terminates the current field buffer, increments the number of fields of the
+// current row, and sets the type of the field
+void commit_field(char *field_buf, int buf_idx, CSV *csv) {
+  field_buf[buf_idx] = '\0';
+  size_t field_idx = csv->rows[csv->size].size++;
+  set_field_type(&csv->rows[csv->size].fields[field_idx], field_buf);
 }
 
-// Separate fields on commas and move pointer the start of the next field
-char *csv_getfield(char **buf) {
+// Parse CSV and returns the number of rows or -1 if there is an error
+int csv_parse(int max_field_size, FILE *fp, CSV *csv) {
+  int c;
+  int i = 0;
+  char field_buf[max_field_size];
   ParserState state = START_FIELD;
-  char *start = *buf;
-  char *out = start;
 
-  if (start == NULL) {
-    return NULL;
-  }
+  if (max_field_size <= 0 || fp == NULL || csv == NULL)
+    return -1;
 
-  while (*out != '\0') {
+  while (i < max_field_size - 1 && c != EOF) {
+    c = fgetc(fp);
+
     switch (state) {
     case START_FIELD:
-      if (**buf == '"') {
+      if (c == EOF) {
+        return csv->size;
+      } else if (csv_is_line_ending(c, fp)) {
+        commit_field(field_buf, i, csv);
+        csv->size++;
+        i = 0;
+        state = START_FIELD;
+        break;
+      } else if (c == '"') {
         state = IN_QUOTED;
-        (*buf)++;
-      } else if (**buf == ',') {
-        *out = '\0';
-        (*buf)++;
-        return start;
+        break;
+      } else if (c == ',') {
+        commit_field(field_buf, i, csv);
+        i = 0;
+        state = START_FIELD;
+        break;
       } else {
         state = IN_UNQUOTED;
-        // Append char and slide pointer forward by one
-        *out = **buf;
-        out++;
-        (*buf)++;
+        field_buf[i++] = (char)c;
+        break;
       }
       break;
     case IN_UNQUOTED:
-      if (**buf == '"') {
-        buf = NULL;
-        return NULL;
-      } else if (**buf == ',') {
-        *out = '\0';
-        (*buf)++;
-        return start;
+      if (c == '"') {
+        CSV_FPRINTF(stderr, "unexpected '\"' on row %d field %d\n",
+                    csv->size + 1, csv->rows[csv->size].size + 1);
+        return -1;
+      } else if (c == ',') {
+        commit_field(field_buf, i, csv);
+        i = 0;
+        state = START_FIELD;
+        break;
+      } else if (csv_is_line_ending(c, fp)) {
+        commit_field(field_buf, i, csv);
+        csv->size++;
+        i = 0;
+        state = START_FIELD;
+        break;
       }
-      // Append char and slide pointer forward by one
-      *out = **buf;
-      out++;
-      (*buf)++;
+      field_buf[i++] = (char)c;
       break;
     case IN_QUOTED:
-      if (**buf == '"') {
+      if (c == '"') {
         state = AFTER_QUOTE;
-        (*buf)++;
         continue;
       }
-      // Append char and slide pointer forward by one
-      *out = **buf;
-      out++;
-      (*buf)++;
+      field_buf[i++] = (char)c;
       break;
     case AFTER_QUOTE:
-      if (**buf == '"') {
-        char *next = *buf + 1;
-        if (*next == ',' || *next == '\0') {
-          *out = '\0';
-          out++;
-          (*buf)++;
+      if (c == '"') {
+        int next = fgetc(fp);
+        if (next == ',' || next == '\0') {
+          commit_field(field_buf, i, csv);
+          i = 0;
+          state = START_FIELD;
           break;
         }
-        // Append char and slide pointer forward by one
-        *out = **buf;
-        out++;
-        (*buf)++;
-      } else if (**buf == ',') {
-        *out = '\0';
-        (*buf)++;
-        return start;
+        ungetc(next, fp);
+        field_buf[i++] = (char)c;
+        break;
+      } else if (c == ',') {
+        commit_field(field_buf, i, csv);
+        i = 0;
+        state = START_FIELD;
+        break;
+      } else if (csv_is_line_ending(c, fp)) {
+        commit_field(field_buf, i, csv);
+        csv->size++;
+        i = 0;
+        state = START_FIELD;
+        break;
       } else {
         state = IN_QUOTED;
-        // Append char and slide pointer forward by one
-        *out = **buf;
-        out++;
-        (*buf)++;
+        field_buf[i++] = (char)c;
+        break;
       }
-      break;
     }
   }
-  *buf = NULL;
-  return start;
+  if (c != EOF) {
+    CSV_FPRINTF(stderr, "max field size reached on row %d\n", csv->size);
+    return -1;
+  }
+  return csv->size;
 }
 
 int read_csv(Region *csv_r, CSV *csv, const char *path) {
@@ -319,7 +321,6 @@ int read_csv(Region *csv_r, CSV *csv, const char *path) {
     CSV_FPRINTF(stderr, "one or more pointer value is NULL\n");
     return 0;
   }
-  char line[4096];
   FILE *f = fopen(path, "r");
   if (f == NULL) {
     CSV_FPRINTF(stderr, "error opening %s: %s\n", path, strerror(errno));
@@ -327,23 +328,7 @@ int read_csv(Region *csv_r, CSV *csv, const char *path) {
     return 0;
   }
 
-  while (csv_getline(line, sizeof(line), f)) {
-    line[strcspn(line, "\n")] = '\0';
-
-    char *p = line;
-    char *field;
-
-    while ((field = csv_getfield(&p)) != NULL) {
-      size_t field_idx = csv->rows[csv->size].size++;
-      if (field_idx >= csv->rows[csv->size].capacity) {
-        CSV_FPRINTF(stderr, "maximum capacity of %zu has been reached\n",
-                    csv->rows[csv->size].capacity);
-        break;
-      }
-      set_field_type(&csv->rows[csv->size].fields[field_idx], field);
-    }
-    csv->size++;
-  }
+  csv_parse(4096, f, csv);
   fclose(f);
   return csv->size;
 }
