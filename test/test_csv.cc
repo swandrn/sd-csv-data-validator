@@ -315,3 +315,8 @@ TEST_F(ReadCsvValid, ScientificNotation) {
   EXPECT_EQ(csv->rows[2].size, 1);
   EXPECT_EQ(csv->rows[3].size, 1);
 }
+
+TEST_F(ReadCsvValid, SingleCell) {
+  EXPECT_EQ(read_csv(&r, csv, "./csv_valid/valid_single_cell.csv"), 1);
+  EXPECT_EQ(csv->rows[0].size, 1);
+}
