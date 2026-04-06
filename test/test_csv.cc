@@ -274,3 +274,12 @@ TEST_F(ReadCsvValid, QuoteOnlyField) {
   EXPECT_EQ(csv->rows[1].size, 1);
   EXPECT_EQ(csv->rows[2].size, 1);
 }
+
+TEST_F(ReadCsvValid, QuotedFieldsWithEscapedQuotes) {
+  EXPECT_EQ(read_csv(&r, csv,
+                     "./csv_valid/valid_quoted_fields_with_escaped_quotes.csv"),
+            3);
+  EXPECT_EQ(csv->rows[0].size, 2);
+  EXPECT_EQ(csv->rows[1].size, 2);
+  EXPECT_EQ(csv->rows[2].size, 2);
+}
