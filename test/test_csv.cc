@@ -307,3 +307,11 @@ TEST_F(ReadCsvValid, AllFieldTypes) {
   EXPECT_EQ(csv->rows[1].size, 7);
   EXPECT_EQ(csv->rows[2].size, 7);
 }
+
+TEST_F(ReadCsvValid, ScientificNotation) {
+  EXPECT_EQ(read_csv(&r, csv, "./csv_valid/valid_scientific_notation.csv"), 4);
+  EXPECT_EQ(csv->rows[0].size, 1);
+  EXPECT_EQ(csv->rows[1].size, 1);
+  EXPECT_EQ(csv->rows[2].size, 1);
+  EXPECT_EQ(csv->rows[3].size, 1);
+}
