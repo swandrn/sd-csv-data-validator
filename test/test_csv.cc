@@ -325,3 +325,15 @@ TEST_F(ReadCsvValid, ManyColumns) {
   EXPECT_EQ(csv->rows[1].size, 32);
   EXPECT_EQ(csv->rows[2].size, 32);
 }
+
+TEST_F(ReadCsvValid, MixedEmptyAndNonEmptyRows) {
+  EXPECT_EQ(
+      read_csv(&r, csv, "./csv_valid/valid_mixed_empty_and_nonempty_rows.csv"),
+      6);
+  EXPECT_EQ(csv->rows[0].size, 3);
+  EXPECT_EQ(csv->rows[1].size, 3);
+  EXPECT_EQ(csv->rows[2].size, 3);
+  EXPECT_EQ(csv->rows[3].size, 3);
+  EXPECT_EQ(csv->rows[4].size, 3);
+  EXPECT_EQ(csv->rows[5].size, 3);
+}
