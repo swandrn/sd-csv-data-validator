@@ -290,3 +290,12 @@ TEST_F(ReadCsvValid, RepeatedColumns) {
   EXPECT_EQ(csv->rows[1].size, 4);
   EXPECT_EQ(csv->rows[2].size, 4);
 }
+
+TEST_F(ReadCsvValid, RepeatedRows) {
+  EXPECT_EQ(read_csv(&r, csv, "./csv_valid/valid_repeated_rows.csv"), 5);
+  EXPECT_EQ(csv->rows[0].size, 2);
+  EXPECT_EQ(csv->rows[1].size, 2);
+  EXPECT_EQ(csv->rows[2].size, 2);
+  EXPECT_EQ(csv->rows[3].size, 2);
+  EXPECT_EQ(csv->rows[4].size, 2);
+}
