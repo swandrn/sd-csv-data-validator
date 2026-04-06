@@ -374,3 +374,10 @@ TEST_F(ReadCsvValid, UTF8MultibyteCharacters) {
   EXPECT_EQ(csv->rows[2].size, 2);
   EXPECT_EQ(csv->rows[3].size, 2);
 }
+
+TEST_F(ReadCsvValid, VeryLongFieldValue) {
+  EXPECT_EQ(read_csv(&r, csv, "./csv_valid/valid_very_long_field_value.csv"),
+            2);
+  EXPECT_EQ(csv->rows[0].size, 1);
+  EXPECT_EQ(csv->rows[1].size, 1);
+}
