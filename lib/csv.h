@@ -23,11 +23,12 @@ extern "C" {
 
 typedef enum {
   UNDEFINED_FIELD = 0,
-  NULL_FIELD = 1,
-  INT_FIELD = 2,
-  FLOAT_FIELD = 3,
-  STRING_FIELD = 4,
-  BOOLEAN_FIELD = 5,
+  MISSING_FIELD = 1,
+  NULL_FIELD = 2,
+  INT_FIELD = 3,
+  FLOAT_FIELD = 4,
+  STRING_FIELD = 5,
+  BOOLEAN_FIELD = 6,
 } FieldType;
 
 typedef struct {
@@ -52,6 +53,13 @@ typedef enum {
   IN_QUOTED,
   AFTER_QUOTE,
 } ParserState;
+
+typedef struct {
+  FieldType inferred_column_type;
+  int inferred_type_occurence_count;
+  int total_type_count;
+  float inferred_type_occurence_ratio;
+} ColumnData;
 
 typedef struct {
   size_t size;
@@ -83,6 +91,7 @@ extern int validate(const char *path);
 
 #endif // LIB_CSV_H
 
+#define CSV_IMPLEMENTATION
 #ifdef CSV_IMPLEMENTATION
 #include <ctype.h>
 #include <errno.h>
@@ -120,6 +129,27 @@ void region_free(Region *r) {
   free(r->data);
   r->data = NULL;
   r->capacity = r->size = 0;
+}
+
+const char *field_type_to_string(FieldType type) {
+  switch (type) {
+  case UNDEFINED_FIELD:
+    return "undefined";
+  case MISSING_FIELD:
+    return "missing";
+  case NULL_FIELD:
+    return "null";
+  case INT_FIELD:
+    return "int";
+  case FLOAT_FIELD:
+    return "float";
+  case STRING_FIELD:
+    return "string";
+  case BOOLEAN_FIELD:
+    return "boolean";
+  default:
+    return "unknown";
+  }
 }
 
 bool csv_is_line_ending(char c, FILE *fp) {
@@ -250,7 +280,7 @@ int csv_parse(int max_field_size, FILE *fp, CSV *csv) {
       break;
     case IN_UNQUOTED:
       if (c == '"') {
-        CSV_FPRINTF(stderr, "unexpected '\"' on row %d field %d\n",
+        CSV_FPRINTF(stderr, "unexpected '\"' on row %lu field %lu\n",
                     csv->size + 1, csv->rows[csv->size].size + 1);
         return -1;
       } else if (c == ',') {
@@ -305,7 +335,7 @@ int csv_parse(int max_field_size, FILE *fp, CSV *csv) {
     }
   }
   if (c != EOF) {
-    CSV_FPRINTF(stderr, "max field size reached on row %d\n", csv->size);
+    CSV_FPRINTF(stderr, "max field size reached on row %lu\n", csv->size);
     return -1;
   }
   return csv->size;
@@ -328,6 +358,82 @@ int read_csv(Region *csv_r, CSV *csv, const char *path) {
   return csv->size;
 }
 
+void csv_set_column_data(ColumnData *cd, int *field_counts,
+                         int field_type_count) {
+  cd->inferred_column_type = UNDEFINED_FIELD;
+  int max_type_count = 0;
+  int equal_max_count =
+      max_type_count; // If two field types have the same max
+                      // count the column type cannot be inferred
+  for (int field_val = 0; field_val < field_type_count; field_val++) {
+    int count = field_counts[field_val];
+    cd->total_type_count += count;
+    if (count >= max_type_count) {
+      if (count == max_type_count) {
+        equal_max_count = max_type_count;
+      }
+      cd->inferred_column_type = (FieldType)field_val;
+      max_type_count = count;
+    }
+  }
+  if (equal_max_count == max_type_count) {
+    cd->inferred_column_type = UNDEFINED_FIELD;
+    cd->inferred_type_occurence_ratio = 0;
+  }
+  cd->inferred_type_occurence_ratio =
+      (float)field_counts[cd->inferred_column_type] /
+      (float)cd->total_type_count;
+  return;
+}
+
+float csv_compute_score(CSV *csv) {
+  float score = 0;
+  enum { FIELD_TYPE_COUNT = 7 };
+  int field_counts[FIELD_TYPE_COUNT] = {0};
+
+  int max_row_length = 0;
+  for (size_t i = 0; i < csv->size; i++) {
+    if (csv->rows[i].size > max_row_length)
+      max_row_length = csv->rows[i].size;
+  }
+  // Iterate on columns
+  int col;
+  for (col = 0; col < max_row_length; col++) {
+    int row_count = (int)csv->size;
+    for (int row = 0; row < row_count; row++) {
+      // Prevent buffer overflow
+      if (col < csv->rows[row].size) {
+        FieldType field_type = csv->rows[row].fields[col].field_type;
+        if (field_type >= 0 && field_type <= FIELD_TYPE_COUNT) {
+          field_counts[field_type]++;
+        } else {
+          CSV_FPRINTF(stderr, "field type id '%d' unrecognized\n", field_type);
+        }
+      } else {
+        field_counts[MISSING_FIELD]++;
+      }
+    }
+    ColumnData cd = {0};
+    csv_set_column_data(&cd, field_counts, FIELD_TYPE_COUNT);
+    if (cd.inferred_column_type == UNDEFINED_FIELD) {
+      CSV_FPRINTF(stderr, "unable to infer column type for column %d\n",
+                  col + 1);
+    }
+    if (cd.inferred_type_occurence_ratio < 0.8) {
+      CSV_FPRINTF(stderr, "column %d has a low score of %f\n", col + 1,
+                  cd.inferred_type_occurence_ratio * 100);
+    }
+    score += cd.inferred_type_occurence_ratio * 100;
+    printf("inferred_column_type=%s\n",
+           field_type_to_string(cd.inferred_column_type));
+  }
+  printf("score=%f\n", score);
+  if (col == 0) {
+    return score;
+  }
+  return score / col;
+}
+
 int validate(const char *path) {
   Region csv_region = region_malloc(1024 * 1024 * 50);
   CSV *csv = (CSV *)region_alloc(&csv_region, sizeof(*csv));
@@ -342,6 +448,8 @@ int validate(const char *path) {
     csv->rows[i].size = 0;
   }
   read_csv(&csv_region, csv, path);
+  float score = csv_compute_score(csv);
+  CSV_FPRINTF(stderr, "final score: %f\n", score);
   region_free(&csv_region);
   return 0;
 }
