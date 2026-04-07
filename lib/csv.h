@@ -122,25 +122,6 @@ void region_free(Region *r) {
   r->capacity = r->size = 0;
 }
 
-// Checks that a file is a CSV, exits with non zero otherwise
-void file_is_csv(const char *path) {
-  // ends with .csv
-  const char *ext = ".csv";
-  size_t path_len = strlen(path);
-  size_t ext_len = strlen(ext);
-  if (ext_len > path_len) {
-    CSV_FPRINTF(
-        stderr,
-        "length of file extension (%zu) is longer than file path (%zu)\n",
-        ext_len, path_len);
-    exit(EXIT_FAILURE);
-  }
-  if (strncmp(path + path_len - ext_len, ext, ext_len) != 0) {
-    CSV_FPRINTF(stderr, "file extension is not .csv\n");
-    exit(EXIT_FAILURE);
-  }
-}
-
 bool csv_is_line_ending(char c, FILE *fp) {
   if (c == '\n') {
     return true;
